@@ -1,9 +1,12 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from datetime import datetime
+from datetime import datetime, timezone
 
 from src.core.config import settings
 from src.core.db import lifespan, check_db_connection
+from src.core.logging import setup_logging
+
+logger = setup_logging()
 
 
 def create_app() -> FastAPI:
@@ -55,18 +58,24 @@ async def health() -> dict:
     app_status = "ok"
 
     try:
+        logger.info("Checking database connection...")
         db_healthy = await check_db_connection()
         db_status = "ok" if db_healthy else "error"
     except Exception as e:
-        print(e)
+        logger.error("Database health check failed", error=str(e))
         db_status = "error"
 
     overall_status = "ok" if app_status == "ok" and db_status == "ok" else "error"
 
     response = {
         "status": overall_status,
-        "timestamp": datetime.now().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "services": {"application": app_status, "database": db_status},
     }
+
+    if overall_status == "ok":
+        logger.info("Health check passed", services=response["services"])
+    else:
+        logger.warning("Health check failed", services=response["services"])
 
     return response

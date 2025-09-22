@@ -7,8 +7,6 @@ import os
 class Settings(BaseSettings):
     APP_NAME: str = Field(default="AAI Backend", alias="APP_NAME")
     ENVIRONMENT: str = Field(default="development", alias="ENVIRONMENT")
-    LOG_LEVEL: str = Field(default="info", alias="LOG_LEVEL")
-
     DATABASE_URL: str = Field(alias="DATABASE_URL")
 
     JWT_SECRET: str = Field(alias="JWT_SECRET")
@@ -21,6 +19,9 @@ class Settings(BaseSettings):
     CORS_ORIGINS: List[AnyHttpUrl] | List[str] = Field(
         default_factory=list, alias="CORS_ORIGINS"
     )
+
+    LOG_LEVEL: str = Field(default="INFO", alias="LOG_LEVEL")
+    LOG_FORMAT: str = Field(default="json", alias="LOG_FORMAT")
 
     class Config:
         case_sensitive = True
