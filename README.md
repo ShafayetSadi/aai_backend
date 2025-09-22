@@ -1,151 +1,80 @@
 # AAI Backend
 
-A FastAPI-based backend service for an AI-powered application with user authentication, organization management, and staff scheduling features.
+A modern FastAPI-based backend service with user management, authentication, and profile management features.
 
-## Features
+## 🚀 Quick Start
 
-- **Authentication & Authorization**
-
-  - User registration and login
-  - JWT-based access and refresh tokens
-  - Role-based access control (RBAC)
-  - Password hashing with bcrypt
-
-- **Organization Management**
-
-  - Create and manage organizations
-  - Invite members with different roles (owner, manager, member)
-  - Organization categorization and subcategorization
-
-- **Staff Management**
-
-  - Staff scheduling system
-  - Availability management
-  - Role-based permissions
-
-- **Database**
-  - PostgreSQL with async support
-  - SQLModel for ORM
-  - Alembic for database migrations
-
-## Tech Stack
-
-- **Framework**: FastAPI
-- **Database**: PostgreSQL with asyncpg
-- **ORM**: SQLModel
-- **Authentication**: JWT with python-jose
-- **Password Hashing**: Passlib with bcrypt
-- **Migrations**: Alembic
-- **Testing**: pytest with async support
-
-## Quick Start
-
-### Prerequisites
-
-- Python 3.8+
-- PostgreSQL 15+
-- Docker & Docker Compose (optional)
-
-### Using Docker Compose (Recommended)
-
-1. Clone the repository:
+### Using Docker (Recommended)
 
 ```bash
 git clone https://github.com/ShafayetSadi/aai_backend.git
 cd aai_backend
-```
-
-2. Start the services:
-
-```bash
 docker-compose up -d
 ```
 
-The API will be available at `http://localhost:8000`
+API available at `http://localhost:8000`
 
 ### Manual Setup
 
-1. Install dependencies:
-
 ```bash
+# Install dependencies
 pip install -r requirements.txt
-```
 
-2. Set up environment variables:
-
-```bash
+# Setup environment
 cp .env.example .env
 # Edit .env with your configuration
-```
 
-3. Run database migrations:
-
-```bash
+# Run migrations
 alembic upgrade head
-```
 
-4. Start the development server:
-
-```bash
+# Start server
 uvicorn src.main:app --reload
 ```
 
-## API Documentation
+## 📚 Features
 
-Once the server is running, you can access:
+- **User Management** - Complete CRUD operations for users
+- **Profile Management** - Detailed user profiles with personal/professional info
+- **JWT Authentication** - Secure token-based authentication
+- **RESTful API** - Well-documented REST endpoints
+- **Database Migrations** - Alembic-powered schema management
 
-- **Interactive API docs**: `http://localhost:8000/docs`
-- **ReDoc documentation**: `http://localhost:8000/redoc`
+## 🛠️ Tech Stack
 
-## Environment Variables
+- **FastAPI** - Modern Python web framework
+- **SQLModel** - SQL databases in Python
+- **PostgreSQL** - Primary database
+- **JWT** - Authentication tokens
+- **Alembic** - Database migrations
 
-| Variable                      | Description                  | Default  |
-| ----------------------------- | ---------------------------- | -------- |
-| `DATABASE_URL`                | PostgreSQL connection string | Required |
-| `JWT_SECRET`                  | Secret key for JWT tokens    | Required |
-| `ALGORITHM`                   | JWT algorithm                | HS256    |
-| `ACCESS_TOKEN_EXPIRE_MINUTES` | Access token expiry          | 15       |
-| `REFRESH_TOKEN_EXPIRE_DAYS`   | Refresh token expiry         | 7        |
-| `CORS_ORIGINS`                | Allowed CORS origins         | \*       |
+## 📖 API Documentation
 
-## API Endpoints
+- **Interactive Docs**: `http://localhost:8000/docs`
+- **ReDoc**: `http://localhost:8000/redoc`
 
-### Authentication (`/auth`)
-
-- `POST /auth/register` - User registration
-- `POST /auth/login` - User login
-- `POST /auth/refresh` - Refresh access token
-- `GET /auth/me` - Get current user info
-
-### Organizations (`/organizations`)
-
-- `POST /organizations` - Create organization
-- `POST /organizations/{org_id}/invite` - Invite member
-- `GET /organizations/{org_id}/members` - List members
-
-### Staff (`/staff`)
-
-- `GET /staff/me/schedule` - Get my schedule
-- `POST /staff/me/availability` - Update availability
-
-## Development
-
-### Running Tests
+## 🔧 Development
 
 ```bash
+# Run tests
 pytest
-```
 
-### Database Migrations
-
-```bash
-# Create a new migration
+# Create migration
 alembic revision --autogenerate -m "Description"
 
 # Apply migrations
 alembic upgrade head
 ```
 
-## License
+## 📋 Documentation
+
+For detailed documentation, setup guides, API reference, and deployment instructions, see the [docs/](./docs/) folder:
+
+- [Development Setup](./docs/development-setup.md)
+- [API Documentation](./docs/api-documentation.md)
+- [Database Migrations](./docs/database-migrations.md)
+- [Architecture Overview](./docs/architecture.md)
+- [Deployment Guide](./docs/deployment.md)
+
+## 📄 License
 
 This project is private and proprietary.
