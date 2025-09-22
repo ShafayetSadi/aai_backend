@@ -4,7 +4,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, EmailStr
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlmodel import select
 
 from src.core.db import get_session
 from src.core.security import (

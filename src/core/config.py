@@ -28,5 +28,22 @@ class Settings(BaseSettings):
         env_file = os.getenv("ENV_FILE", ".env")
         env_file_encoding = "utf-8"
 
+    # Convenience accessors (snake_case) for callers using lowercase names
+    @property
+    def jwt_secret(self) -> str:
+        return self.JWT_SECRET
+
+    @property
+    def algorithm(self) -> str:
+        return self.ALGORITHM
+
+    @property
+    def access_token_expire_minutes(self) -> int:
+        return self.ACCESS_TOKEN_EXPIRE_MINUTES
+
+    @property
+    def refresh_token_expire_days(self) -> int:
+        return self.REFRESH_TOKEN_EXPIRE_DAYS
+
 
 settings = Settings()
