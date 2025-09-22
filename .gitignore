@@ -1,0 +1,36 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+dist/
+.eggs/
+*.egg-info/
+
+# Virtual environments
+.venv/
+.env
+.env.*
+
+# Pytest
+.pytest_cache/
+
+# Editors/IDE
+.vscode/
+.idea/
+
+# Alembic
+alembic/*.pyc
+alembic/versions/__pycache__/
+
+# Docker
+.dockerignore
+
+# Local env
+.env.local

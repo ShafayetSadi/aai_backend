@@ -1,0 +1,38 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: aai
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    environment:
+      ENV_FILE: .env
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@db:5432/aai
+      JWT_SECRET: change_this_secret_in_prod
+      ALGORITHM: HS256
+      ACCESS_TOKEN_EXPIRE_MINUTES: 15
+      REFRESH_TOKEN_EXPIRE_DAYS: 7
+      LOG_LEVEL: info
+    depends_on:
+      db:
+        condition: service_healthy
+    command: bash -lc "alembic upgrade head && uvicorn src.main:app --host 0.0.0.0 --port 8000"
+    ports:
+      - "8000:8000"
+
+volumes:
+  postgres_data:
