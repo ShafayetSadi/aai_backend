@@ -33,3 +33,7 @@ alembic/versions/__pycache__/
 
 # Local env
 .env.local
+.cursorignore
+
+.cursor/
+AAI_Backend_API.postman_collection.json

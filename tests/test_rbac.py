@@ -8,11 +8,6 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 
 from src.main import app
 from src.core.db import get_session
-from src.models.user import User
-from src.models.organization import Organization
-from src.models.membership import OrganizationMembership, MembershipRole
-from src.core.security import get_password_hash, create_access_token
-
 
 @pytest.fixture(scope="session")
 def event_loop() -> Generator:
@@ -44,36 +39,36 @@ def client_fixture(monkeypatch) -> Generator[TestClient, None, None]:
 
 def test_owner_has_full_access(client: TestClient):
 	# Register owner
-	r = client.post("/auth/register", json={"email": "owner@example.com", "password": "pass", "username": "owner"})
+	r = client.post("/api/v1/auth/register", json={"email": "owner@example.com", "password": "pass", "username": "owner"})
 	assert r.status_code == 200
 	access = r.json()["access_token"]
 	headers = {"Authorization": f"Bearer {access}"}
 
 	# Create org
-	r = client.post("/organizations", json={"name": "TestOrg"}, headers=headers)
+	r = client.post("/api/v1/organizations", json={"name": "TestOrg"}, headers=headers)
 	assert r.status_code == 200
 	org_id = r.json()["id"]
 
 	# Owner can list members
-	r = client.get(f"/organizations/{org_id}/members", headers=headers)
+	r = client.get(f"/api/v1/organizations/{org_id}/members", headers=headers)
 	assert r.status_code == 200
 
 
 def test_staff_blocked_from_manager_route(client: TestClient):
 	# Register manager and create org
-	r = client.post("/auth/register", json={"email": "mgr@example.com", "password": "pass", "username": "manager"})
+	r = client.post("/api/v1/auth/register", json={"email": "mgr@example.com", "password": "pass", "username": "manager"})
 	access_mgr = r.json()["access_token"]
 	headers_mgr = {"Authorization": f"Bearer {access_mgr}"}
-	r = client.post("/organizations", json={"name": "TestOrg2"}, headers=headers_mgr)
+	r = client.post("/api/v1/organizations", json={"name": "TestOrg2"}, headers=headers_mgr)
 	org_id = r.json()["id"]
 
 	# Register staff
-	r = client.post("/auth/register", json={"email": "staff@example.com", "password": "pass", "username": "staff"})
+	r = client.post("/api/v1/auth/register", json={"email": "staff@example.com", "password": "pass", "username": "staff"})
 	staff_user_token = r.json()["access_token"]
 
 	# Manager invites staff as staff
 	r = client.post(
-		f"/organizations/{org_id}/invite",
+		f"/api/v1/organizations/{org_id}/invite",
 		json={"user_id": r.json().get("id", ""), "role": "staff"},
 		headers=headers_mgr,
 	)
@@ -81,5 +76,5 @@ def test_staff_blocked_from_manager_route(client: TestClient):
 
 	# Staff attempts to list members (manager-only)
 	headers_staff = {"Authorization": f"Bearer {staff_user_token}"}
-	r = client.get(f"/organizations/{org_id}/members", headers=headers_staff)
+	r = client.get(f"/api/v1/organizations/{org_id}/members", headers=headers_staff)
 	assert r.status_code in (401, 403)

@@ -4,11 +4,10 @@ Pydantic schemas for Profile model.
 
 from __future__ import annotations
 
-from datetime import datetime, date
-from typing import Optional, List
+from datetime import datetime
+from typing import Optional
 from uuid import UUID
 from pydantic import BaseModel
-from src.models.profile import Gender
 
 
 class ProfileBase(BaseModel):
@@ -16,13 +15,6 @@ class ProfileBase(BaseModel):
 
     first_name: Optional[str] = None
     last_name: Optional[str] = None
-    date_of_birth: Optional[date] = None
-    gender: Optional[Gender] = None
-    location_id: Optional[UUID] = None
-    bio: Optional[str] = None
-    profile_picture_url: Optional[str] = None
-    is_public: bool = True
-    allow_contact: bool = True
 
 
 class ProfileCreate(ProfileBase):
@@ -36,52 +28,6 @@ class ProfileUpdate(ProfileBase):
 
     first_name: Optional[str] = None
     last_name: Optional[str] = None
-    date_of_birth: Optional[date] = None
-    gender: Optional[Gender] = None
-    location_id: Optional[UUID] = None
-    bio: Optional[str] = None
-    profile_picture_url: Optional[str] = None
-    is_public: Optional[bool] = None
-    allow_contact: Optional[bool] = None
-
-
-class LocationSummary(BaseModel):
-    """Summary of location information."""
-
-    id: UUID
-    country: str
-    state_province: Optional[str] = None
-    city: Optional[str] = None
-    postal_code: Optional[str] = None
-
-    class Config:
-        from_attributes = True
-
-
-class ContactSummary(BaseModel):
-    """Summary of contact information."""
-
-    id: UUID
-    type: str
-    value: str
-    is_primary: bool
-
-    class Config:
-        from_attributes = True
-
-
-class JobSummary(BaseModel):
-    """Summary of job information."""
-
-    id: UUID
-    title: str
-    company: str
-    industry: Optional[str] = None
-    start_date: Optional[date] = None
-    end_date: Optional[date] = None
-
-    class Config:
-        from_attributes = True
 
 
 class ProfileResponse(ProfileBase):
@@ -89,15 +35,21 @@ class ProfileResponse(ProfileBase):
 
     id: UUID
     user_id: UUID
-    is_active: bool
     created_at: datetime
     updated_at: datetime
-    deactivated_at: Optional[datetime] = None
+    created_by: Optional[UUID] = None
+    updated_by: Optional[UUID] = None
 
-    # Related data
-    location: Optional[LocationSummary] = None
-    contacts: List[ContactSummary] = []
-    jobs: List[JobSummary] = []
+    @property
+    def full_name(self) -> str:
+        """Get the user's full name."""
+        if self.first_name and self.last_name:
+            return f"{self.first_name} {self.last_name}"
+        elif self.first_name:
+            return self.first_name
+        elif self.last_name:
+            return self.last_name
+        return "Unknown User"
 
     class Config:
         from_attributes = True

@@ -15,7 +15,6 @@ class UserBase(BaseModel):
 
     username: str
     email: EmailStr
-    is_active: bool = True
     is_super_admin: bool = False
 
 
@@ -31,7 +30,6 @@ class UserUpdate(BaseModel):
     username: Optional[str] = None
     email: Optional[EmailStr] = None
     password: Optional[str] = None
-    is_active: Optional[bool] = None
     is_super_admin: Optional[bool] = None
 
 

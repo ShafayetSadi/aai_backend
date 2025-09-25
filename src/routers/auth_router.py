@@ -10,11 +10,11 @@ from src.core.db import get_session
 from src.core.security import (
     create_access_token,
     create_refresh_token,
-    get_current_user,
     get_password_hash,
     verify_password,
 )
 from src.models.user import User
+from src.models.profile import Profile
 
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -53,8 +53,18 @@ async def register(
         password_hash=get_password_hash(payload.password),
     )
     session.add(user)
+    await session.flush()
+
+    profile = Profile(
+        user_id=user.id,
+        first_name=None,
+        last_name=None,
+    )
+    session.add(profile)
+
     await session.commit()
     await session.refresh(user)
+    await session.refresh(profile)
     access = create_access_token(str(user.id))
     refresh = create_refresh_token(str(user.id))
     return TokenPair(access_token=access, refresh_token=refresh)
@@ -104,22 +114,3 @@ async def refresh(payload: RefreshRequest) -> TokenPair:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token"
         )
-
-
-class MeResponse(BaseModel):
-    id: str
-    email: EmailStr
-    username: str
-    is_active: bool
-    is_super_admin: bool
-
-
-@router.get("/me", response_model=MeResponse)
-async def me(user: User = Depends(get_current_user)) -> MeResponse:
-    return MeResponse(
-        id=str(user.id),
-        email=user.email,
-        username=user.username,
-        is_active=user.is_active,
-        is_super_admin=user.is_super_admin,
-    )

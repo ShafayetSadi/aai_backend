@@ -9,18 +9,20 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 from sqlmodel import select
 from sqlalchemy import func, and_, or_
 
 from src.core.db import get_session
 from src.core.security import get_current_user, get_password_hash
 from src.models.user import User
+from src.models.profile import Profile
 from src.schemas.user import (
-    UserCreate,
     UserUpdate,
     UserResponse,
     UserListResponse,
 )
+from src.schemas.profile import ProfileResponse
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -30,7 +32,6 @@ async def get_users(
     page: int = Query(1, ge=1, description="Page number"),
     size: int = Query(10, ge=1, le=100, description="Page size"),
     search: Optional[str] = Query(None, description="Search by username or email"),
-    is_active: Optional[bool] = Query(None, description="Filter by active status"),
     session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user),
 ) -> UserListResponse:
@@ -47,9 +48,6 @@ async def get_users(
             User.username.ilike(f"%{search}%"), User.email.ilike(f"%{search}%")
         )
         filters.append(search_filter)
-
-    if is_active is not None:
-        filters.append(User.is_active == is_active)
 
     if filters:
         query = query.where(and_(*filters))
@@ -98,50 +96,14 @@ async def get_user(
     return UserResponse.model_validate(user)
 
 
-@router.post("/", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
-async def create_user(
-    user_data: UserCreate,
-    session: AsyncSession = Depends(get_session),
-    current_user: User = Depends(get_current_user),
-) -> UserResponse:
-    """Create a new user."""
-
-    # Check if user already exists
-    existing_user = await session.execute(
-        select(User).where(
-            (User.email == user_data.email) | (User.username == user_data.username)
-        )
-    )
-    if existing_user.scalar_one_or_none():
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="User with this email or username already exists",
-        )
-
-    # Create new user
-    user = User(
-        username=user_data.username,
-        email=user_data.email,
-        password_hash=get_password_hash(user_data.password),
-        is_active=user_data.is_active,
-        is_super_admin=user_data.is_super_admin,
-    )
-
-    session.add(user)
-    await session.commit()
-    await session.refresh(user)
-
-    return UserResponse.model_validate(user)
-
-
-@router.put("/{user_id}", response_model=UserResponse)
+@router.patch("/{user_id}", response_model=UserResponse)
 async def update_user(
     user_id: UUID,
     user_data: UserUpdate,
     session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user),
 ) -> UserResponse:
-    """Update a user."""
+    """Update a user partially."""
 
     # Get existing user
     result = await session.execute(select(User).where(User.id == user_id))
@@ -193,7 +155,7 @@ async def delete_user(
     session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user),
 ):
-    """Delete a user (soft delete by setting is_active=False)."""
+    """Delete a user."""
 
     # Get existing user
     result = await session.execute(select(User).where(User.id == user_id))
@@ -204,29 +166,29 @@ async def delete_user(
             status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
 
-    # Soft delete by setting is_active to False
-    user.is_active = False
+    # Hard delete the user
+    await session.delete(user)
     await session.commit()
 
 
-@router.patch("/{user_id}/activate", response_model=UserResponse)
-async def activate_user(
+# Hierarchical endpoints for better resource organization
+
+
+@router.get("/{user_id}/profile", response_model=ProfileResponse)
+async def get_user_profile(
     user_id: UUID,
     session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user),
-) -> UserResponse:
-    """Activate a user."""
+) -> ProfileResponse:
+    """Get profile by user ID."""
 
-    result = await session.execute(select(User).where(User.id == user_id))
-    user = result.scalar_one_or_none()
+    result = await session.execute(select(Profile).where(Profile.user_id == user_id))
+    profile = result.scalar_one_or_none()
 
-    if not user:
+    if not profile:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Profile not found for this user",
         )
 
-    user.is_active = True
-    await session.commit()
-    await session.refresh(user)
-
-    return UserResponse.model_validate(user)
+    return ProfileResponse.model_validate(profile)
